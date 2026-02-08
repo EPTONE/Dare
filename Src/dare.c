@@ -3,8 +3,8 @@
 #include <string.h>
 
 void dare_init(darray *dare, darray_config *dare_conf) {
-    assert(!dare);
-    assert(!dare_conf);
+    assert(dare);
+    assert(dare_conf);
 
     dare->f_code = F_NULL;
    
@@ -38,7 +38,7 @@ void dare_init(darray *dare, darray_config *dare_conf) {
 }
 
 void dare_deinit(darray *dare) {
-    assert(!dare);
+    assert(dare);
     dare->f_code = F_NULL;
 
     if(dare->data) DARE_FREE(dare->data);
@@ -54,7 +54,7 @@ void dare_deinit(darray *dare) {
 }
 
 void dare_resize(darray *dare, size_t expander) {
-    assert(!dare);
+    assert(dare);
 
     size_t n_size_bytes = dare->size_bytes * expander;
     dare->data = DARE_ALLOC(dare->data, n_size_bytes);
@@ -75,7 +75,9 @@ void dare_resize(darray *dare, size_t expander) {
 
 /**/
 size_t dare_push(darray *dare, void *item) {
-    assert(!item || !dare);
+    assert(item );
+    assert(dare);
+
     dare->f_code = F_NULL;
 
     if(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
@@ -93,7 +95,7 @@ size_t dare_push(darray *dare, void *item) {
 }
 
 void *dare_pull(darray *dare) {
-    assert(!dare);
+    assert(dare);
     dare->f_code = F_NULL;
 
     size_t pull = WRAP(dare->pull - 1, dare->size);
