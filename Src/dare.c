@@ -75,7 +75,6 @@ void dare_resize(darray *dare, size_t expander) {
 
 /**/
 size_t dare_push(darray *dare, void *item) {
-    assert(item );
     assert(dare);
 
     dare->f_code = F_NULL;
