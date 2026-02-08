@@ -3,7 +3,9 @@
 #include <string.h>
 
 void dare_init(darray *dare, darray_config *dare_conf) {
-    assert(!dare || !dare_conf);
+    assert(!dare);
+    assert(!dare_conf);
+
     dare->f_code = F_NULL;
    
     dare->elements = 0;
