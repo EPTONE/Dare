@@ -94,7 +94,7 @@ void *dare_pull(darray *dare) {
     assert(dare);
     dare->f_code = F_NULL;
 
-    size_t pull = WRAP(dare->pull - 1, dare->size);
+    size_t pull = WRAP(dare->pull + 1, dare->size);
 
     void *point = dare->data + (pull * dare->type_offset);
     return point;    
