@@ -1,7 +1,4 @@
 #include "dare.h" 
-#include <stdint.h>
-#include <string.h>
-
 void dare_init(darray *dare, darray_config *dare_conf) {
     assert(dare);
     assert(dare_conf);
@@ -74,7 +71,7 @@ void dare_resize(darray *dare, size_t expander) {
 }
 
 /**/
-size_t dare_push(darray *dare, void *item) {
+size_t dare_push(darray *dare, void *item, bool is_obj) {
     assert(dare);
 
     dare->f_code = F_NULL;
@@ -86,7 +83,7 @@ size_t dare_push(darray *dare, void *item) {
     size_t push = WRAP(dare->push + 1, dare->size);
 
     void *point = dare->data + (push * dare->type_offset);
-    memcpy(point, item, dare->type_offset);
+    is_obj ? memcpy(point, item, dare->type_offset) : memcpy(point, item, 0);
 
     dare->push = push;
     dare->elements++;

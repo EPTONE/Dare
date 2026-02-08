@@ -1,10 +1,12 @@
 #ifndef DARE_H
     #define DARE_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdint.h>
 
 #ifndef DARE_ALLOC
     #define DARE_ALLOC(ptr, size) realloc(ptr, size)
@@ -54,7 +56,7 @@ typedef struct darray_config {
 void dare_init(darray *dare, darray_config *dare_conf);
 void dare_deinit(darray *dare);
 
-size_t dare_push(darray *dare, void *item);
+size_t dare_push(darray *dare, void *item, bool is_obj);
 size_t dare_insert(darray *dare, void *item, size_t pos);
 
 void *dare_pull(darray *dare);
