@@ -88,8 +88,8 @@ size_t dare_push(darray *dare, void *item) {
 
     dare->elements++;
 
-    dare->push++;
     dare->push = push;
+    dare->push++;
     return push;
 }
 
