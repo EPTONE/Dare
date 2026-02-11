@@ -56,13 +56,13 @@ typedef struct darray_config {
 void dare_init(darray *dare, darray_config *dare_conf);
 void dare_deinit(darray *dare);
 
-size_t dare_push(darray *dare, void *item, bool is_obj);
-size_t dare_insert(darray *dare, void *item, size_t pos);
-
+size_t dare_push(darray *dare, void *item);
 void *dare_pull(darray *dare);
+
+size_t dare_insert(darray *dare, void *item, size_t pos);
 void *dare_get(darray *dare, size_t pos);
 
-void *dare_pop(darray *dare);
-void *dare_remove(darray *dare, size_t pos);
+void *dare_pop(darray *dare, void *dest);
+void dare_remove(darray *dare, size_t pos, void *dest);
 
 #endif /* DARE_H */

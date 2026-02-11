@@ -1,4 +1,5 @@
 #include "dare.h" 
+#include <string.h>
 void dare_init(darray *dare, darray_config *dare_conf) {
     assert(dare);
     assert(dare_conf);
@@ -71,7 +72,7 @@ void dare_resize(darray *dare, size_t expander) {
 }
 
 /**/
-size_t dare_push(darray *dare, void *item, bool is_obj) {
+size_t dare_push(darray *dare, void *item) {
     assert(dare);
 
     dare->f_code = F_NULL;
@@ -80,13 +81,15 @@ size_t dare_push(darray *dare, void *item, bool is_obj) {
         dare_resize(dare, dare->expander);
     }
 
-    size_t push = WRAP(dare->push + 1, dare->size);
+    size_t push = WRAP(dare->push, dare->size);
 
     void *point = dare->data + (push * dare->type_offset);
-    is_obj ? memcpy(point, item, dare->type_offset) : memcpy(point, item, 0);
+    memcpy(point, item, dare->type_offset);
 
-    dare->push = push;
     dare->elements++;
+
+    dare->push++;
+    dare->push = push;
     return push;
 }
 
@@ -97,5 +100,47 @@ void *dare_pull(darray *dare) {
     size_t pull = WRAP(dare->pull + 1, dare->size);
 
     void *point = dare->data + (pull * dare->type_offset);
-    return point;    
+    return point; 
+}
+
+size_t dare_insert(darray *dare , void *item, size_t pos) {
+   
+    if(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
+        dare_resize(dare, dare->expander);
+    }
+
+    size_t n_pos = WRAP(pos, dare->size);
+    void *point = dare->data + (n_pos * dare->type_offset);
+    memcpy(point, item, dare->type_offset);
+
+    dare->elements++;
+
+    return n_pos;
+}
+
+void *dare_get(darray *dare, size_t pos) {
+    size_t n_pos = WRAP(pos, dare->size);
+    void *point = dare->data + (n_pos * dare->type_offset);
+    
+    return point;
+}
+
+/* removes the data at position copy data to dest if not NULL
+ *
+ * dare : the array structure to use | pos : the position in the array |
+ * dest : the type to contain the data in before it is removed | return : void
+ * */
+void dare_remove(darray *dare, size_t pos, void *dest) {
+
+    if(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
+        dare_resize(dare, dare->expander);
+    }
+
+    size_t n_pos = WRAP(pos, dare->size);
+    void *point = dare->data + (n_pos * dare->type_offset);
+    
+    if(dest) memcpy(dest, point, dare->type_offset);
+    memset(point, 0, dare->type_offset);
+
+    dare->elements--;
 }
