@@ -100,6 +100,9 @@ void *dare_pull(darray *dare) {
     size_t pull = WRAP(dare->pull + 1, dare->size);
 
     void *point = dare->data + (pull * dare->type_offset);
+
+    dare->pull = pull;
+    dare->pull++;
     return point; 
 }
 
