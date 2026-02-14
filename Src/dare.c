@@ -74,7 +74,6 @@ void dare_resize(darray *dare, size_t expander) {
 /**/
 size_t dare_push(darray *dare, void *item) {
     assert(dare);
-
     dare->f_code = F_NULL;
 
     if(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
