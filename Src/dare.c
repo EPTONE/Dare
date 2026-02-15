@@ -137,7 +137,7 @@ void *dare_pop(darray *dare) {
         dare_resize(dare, dare->expander);
     }
 
-    size_t n_pos = WRAP(dare->push, dare->size);
+    size_t n_pos = WRAP(dare->push - 1, dare->size);
     void *point = dare->data + (n_pos * dare->type_offset);
 
     dare->elements--;
