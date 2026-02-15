@@ -62,7 +62,7 @@ void *dare_pull(darray *dare);
 size_t dare_insert(darray *dare, void *item, size_t pos);
 void *dare_get(darray *dare, size_t pos);
 
-void *dare_pop(darray *dare, void *dest);
-void dare_remove(darray *dare, size_t pos, void *dest);
+void *dare_pop(darray *dare);
+void dare_hremove(darray *dare, size_t pos, void *dest);
 
 #endif /* DARE_H */

@@ -71,7 +71,11 @@ void dare_resize(darray *dare, size_t expander) {
     }
 }
 
-/**/
+/* Pushes elements into alloc'd memory and increments to next free position,
+ * wrapping if index goes past size 
+ *
+ * dare : array of memory to preform operations on | item : the pointer to the 
+ * item to copy into memory | return : size_t insertion point of item */
 size_t dare_push(darray *dare, void *item) {
     assert(dare);
     dare->f_code = F_NULL;
@@ -124,6 +128,21 @@ void *dare_get(darray *dare, size_t pos) {
     size_t n_pos = WRAP(pos, dare->size);
     void *point = dare->data + (n_pos * dare->type_offset);
     
+    return point;
+}
+
+void *dare_pop(darray *dare) {
+
+    if(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
+        dare_resize(dare, dare->expander);
+    }
+
+    size_t n_pos = WRAP(dare->push, dare->size);
+    void *point = dare->data + (n_pos * dare->type_offset);
+
+    dare->elements--;
+    dare->push--;
+
     return point;
 }
 
