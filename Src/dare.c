@@ -80,8 +80,9 @@ size_t dare_push(darray *dare, void *item) {
     assert(dare);
     dare->f_code = F_NULL;
 
-    if(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
+    while(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
         dare_resize(dare, dare->expander);
+        if(dare->f_code == F_NOALLOC) return 0;
     }
 
     size_t push = WRAP(dare->push, dare->size);
@@ -111,7 +112,7 @@ void *dare_pull(darray *dare) {
 
 size_t dare_insert(darray *dare , void *item, size_t pos) {
    
-    if(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
+    while(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
         dare_resize(dare, dare->expander);
     }
 
@@ -133,7 +134,7 @@ void *dare_get(darray *dare, size_t pos) {
 
 void *dare_pop(darray *dare) {
 
-    if(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
+    while(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
         dare_resize(dare, dare->expander);
     }
 
@@ -153,8 +154,9 @@ void *dare_pop(darray *dare) {
  * */
 void dare_remove(darray *dare, size_t pos, void *dest) {
 
-    if(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
+    while(IS_OVERLOADED(dare->load, dare->elements, dare->size)) {
         dare_resize(dare, dare->expander);
+        if(dare->f_code == F_NOALLOC) return;
     }
 
     size_t n_pos = WRAP(pos, dare->size);
@@ -164,4 +166,22 @@ void dare_remove(darray *dare, size_t pos, void *dest) {
     memset(point, 0, dare->type_offset);
 
     dare->elements--;
+}
+
+void dare_merge(darray *src, darray *dst, size_t offset) {
+    dst->f_code = F_NULL;
+
+    offset = WRAP(offset, dst->size);
+    if(src->type_offset != dst->type_offset) {
+        src->f_code = F_TNOMATCH, dst->f_code = F_TNOMATCH; 
+        return;
+    }
+    
+    while(IS_OVERLOADED(dst->load, src->size + offset, dst->size)) {
+       dare_resize(dst, dst->expander);
+       if(dst->f_code == F_NOALLOC) return;
+    }
+
+    dst->data += (offset * dst->type_offset);
+    mempcpy(dst->data, src->data, src->size_bytes);
 }

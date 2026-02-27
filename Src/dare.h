@@ -19,28 +19,31 @@
 #define WRAP(pos, size) size ? pos % size : 0
 #define IS_OVERLOADED(load, elements, size) load <= (float)elements / (float)size
 
+#define DARE_HTCONV(type, func) *(type *)func
+#define DARE_TCONV(type, func) (type *) func
+
 typedef enum f_code {
     
     F_NULL,
     F_NOALLOC,
     F_NOFREE,
+    F_TNOMATCH,
 
 } f_code;
 
 typedef struct darray {
     int f_code;
 
-    size_t push, pull;
-    size_t type_offset;
-    
-    float load;
-    size_t expander;
-
     size_t elements;
     size_t size, size_bytes;
+    size_t type_offset;
+ 
+    size_t push, pull;
+        
+    float load;
+    double expander;
 
-    void *data;
-
+    void *data; // we could just make this one big field of data
 } darray;
 
 typedef struct darray_config {
@@ -49,7 +52,7 @@ typedef struct darray_config {
     size_t size;
 
     float load;
-    size_t expander;
+    double expander;
 
 } darray_config;
 
@@ -64,5 +67,7 @@ void *dare_get(darray *dare, size_t pos);
 
 void *dare_pop(darray *dare);
 void dare_hremove(darray *dare, size_t pos, void *dest);
+
+void dare_merge(darray *src, darray *dst, size_t offset);
 
 #endif /* DARE_H */
