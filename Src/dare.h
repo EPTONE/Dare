@@ -22,6 +22,8 @@
 #define DARE_HTCONV(type, func) *(type *)func
 #define DARE_TCONV(type, func) (type *) func
 
+#define INIT_DARE_CONF_DEFAULT(type) {sizeof(type), 25, 0.75f, 2.0f}
+
 typedef enum f_code {
     
     F_NULL,

@@ -1,6 +1,5 @@
 #include "dare.h" 
 #include <string.h>
-
 void dare_init(darray *dare, darray_config *dare_conf) {
     assert(dare);
     assert(dare_conf);
