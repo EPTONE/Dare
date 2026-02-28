@@ -71,5 +71,6 @@ void *dare_pop(darray *dare);
 void dare_hremove(darray *dare, size_t pos, void *dest);
 
 void dare_merge(darray *src, darray *dst, size_t offset);
+void dare_resize(darray *dare, size_t expander);
 
 #endif /* DARE_H */
