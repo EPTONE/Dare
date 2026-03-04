@@ -12,17 +12,19 @@
     #define DARE_ALLOC(ptr, size) realloc(ptr, size)
 #endif /* DARE_ALLOC */
 
+#ifndef DARE_REALLOC
+    #define DARE_REALLOC(ptr, size) realloc(ptr, size)
+#endif /* DARE_REALLOC */
+
 #ifndef DARE_FREE
     #define DARE_FREE(ptr) free(ptr)
 #endif /* DARE_FREE */
 
-#define WRAP(pos, size) size ? pos % size : 0
-#define IS_OVERLOADED(load, elements, size) load <= (float)elements / (float)size
-
-#define DARE_HTCONV(type, func) *(type *)func
-#define DARE_TCONV(type, func) (type *) func
-
 #define INIT_DARE_CONF_DEFAULT(type) {sizeof(type), 25, 0.75f, 2.0f}
+
+#define WRAP(pos, size) size ? (pos) % size : 0
+#define IS_OVERLOADED(load, elements, size) load <= (float)elements / (float)size
+#define DARE_GET_HEADER(arrptr) ((darray *)(arrptr)) - 1
 
 typedef enum f_code {
     
@@ -38,39 +40,128 @@ typedef struct darray {
 
     size_t elements;
     size_t size, size_bytes;
-    size_t type_offset;
  
     size_t push, pull;
         
     float load;
     double expander;
-
-    void *data; // we could just make this one big field of data
 } darray;
 
-typedef struct darray_config {
-    
+typedef struct darray_config { 
     size_t type_offset;
     size_t size;
 
     float load;
     double expander;
-
 } darray_config;
 
-void dare_init(darray *dare, darray_config *dare_conf);
-void dare_deinit(darray *dare);
+void *dare_init(darray_config *dare_conf);
+void *dare_resize(void *arrptr, size_t expander);
 
-size_t dare_push(darray *dare, void *item);
-void *dare_pull(darray *dare);
+#define DARE_DEINIT(arrptr)                                                    \
+    do {                                                                       \
+        assert(arrptr);                                                        \
+        darray *head = DARE_GET_HEADER(arrptr);                                \
+        DARE_FREE(head);                                                       \
+        arrptr = NULL                                                          \
+    } while(false)                                                             \
 
-size_t dare_insert(darray *dare, void *item, size_t pos);
-void *dare_get(darray *dare, size_t pos);
+#define DARE_PUSH(arrptr, item)                                                \
+    do {                                                                       \
+        assert(arrptr);                                                        \
+        darray *head = DARE_GET_HEADER(arrptr);                                \
+        while(IS_OVERLOADED(head->load, head->elements, head->size)) {         \
+            arrptr = dare_resize(arrptr, head->size * head->expander);         \
+        }                                                                      \
+                                                                               \
+        size_t push = WRAP(head->push, head->size);                            \
+        arrptr[push] = item;                                                   \
+        head->push = push++; head->elements++;                                 \
+    } while(false)                                                             \
 
-void *dare_pop(darray *dare);
-void dare_hremove(darray *dare, size_t pos, void *dest);
+#define DARE_HPULL(arrptr, item)                                               \
+    do {                                                                       \
+        darray *head = DARE_GET_HEADER(arrptr);                                \
+        size_t pull = WRAP(head->pull, head->size);                            \
+        item = arrptr[pull];                                                   \
+        head->pull = pull++;                                                   \
+    } while(false)                                                             \
+
+#define DARE_PPULL(arrptr, item)                                               \
+    do {                                                                       \
+        darray *head = DARE_GET_HEADER(arrptr);                                \
+        size_t pull = WRAP(arrptr, head->pull, head->size);                    \
+        item = &arrptr[pull];                                                  \
+        head->pull = pull++;                                                   \
+    } while(false)                                                             \
+
+#define DARE_INSERT(arrptr, item, pos)                                         \
+    do {                                                                       \
+        assert(arrptr);                                                        \
+        darray *head = DARE_GET_HEADER(arrptr);                                \
+        while(IS_OVERLOADED(head->load, head->elements, head->size)) {         \
+            arrptr = dare_resize(arrptr, head->size * head->expander);         \
+        }                                                                      \
+                                                                               \
+        size_t push = WRAP(pos, head->size);                                   \
+        arrptr[push] = item;                                                   \
+        head->elements++;                                                      \
+    } while(false)                                                             \
+
+#define DARE_HGET(arrptr, item, pos)                                           \
+    do {                                                                       \
+        assert(arrptr);                                                        \
+        darray *head = DARE_GET_HEADER(arrptr);                                \
+                                                                               \
+        size_t pull = WRAP(pos, item);                                         \
+        item = arrptr[pull]                                                    \
+    } while(false)                                                             \
+
+#define DARE_PGET(arrptr, item, pos)                                           \
+    do {                                                                       \
+        assert(arrptr);                                                        \
+        darray *head = DARE_GET_HEADER(arrptr);                                \
+                                                                               \
+        size_t pull = WRAP(pos, item);                                         \
+        item = &arrptr[pull]                                                   \
+    } while(false)                                                             \
+
+#define DARE_HPOP(arrptr, item)                                                \
+    do {                                                                       \
+        darray *head = DARE_GET_HEADER(arrptr);                                \
+                                                                               \
+        size_t pull = WRAP(head->push--, head->size);                          \
+        item = arrptr[pull];                                                   \
+        head->elements--;                                                      \
+    } while(false)                                                             \
+
+#define DARE_PPOP(arrptr, item)                                                \
+    do {                                                                       \
+        darray *head = DARE_GET_HEADER(arrptr);                                \
+                                                                               \
+        size_t pull = WRAP(head->push--, head->size);                          \
+        item = &arrptr[pull];                                                  \
+        head->elements--;                                                      \
+    } while(false)                                                             \
+
+#define DARE_HREMOVE(arrptr, item, pos)\
+    do {                                                                       \
+        darray *head = DARE_GET_HEADER(arrptr);                                \
+                                                                               \
+        size_t pull = WRAP(pos, head->size);                                   \
+        item = arrptr[pull];                                                   \
+        head->elements--;                                                      \
+    } while(false)                                                             \
+
+#define DARE_PREMOVE(arrptr, item, pos)                                        \
+    do {                                                                       \
+        darray *head = DARE_GET_HEADER(arrptr);                                \
+                                                                               \
+        size_t pull = WRAP(pos, head->size);                                   \
+        item = &arrptr[pull];                                                  \
+        head->elements--;                                                      \
+    } while(false)                                                             \
 
 void dare_merge(darray *src, darray *dst, size_t offset);
-void dare_resize(darray *dare, size_t expander);
 
 #endif /* DARE_H */

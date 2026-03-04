@@ -1,0 +1,7 @@
+TODO:
+
+    1. Make the test directories that I've been putting off out of laziness &
+    verify that everything is not going to fucking explode.
+
+    2. Make documentation both in code and in file, also add some examples
+    to display usage.
