@@ -1,5 +1,11 @@
 #include "dare.h" 
 
+/* Initializes the memory segment to be used by the header and the array
+ * and then returns to the pointer at the end of said header
+ *
+ * *dare_conf : takes a pointer to a configuration struct values will be added
+ * to the header | returns : (void *) a pointer to the beginning of the array
+ */
 void *dare_init(darray_config *dare_conf) {
     assert(dare_conf);
 
@@ -19,52 +25,9 @@ void *dare_init(darray_config *dare_conf) {
     dare->expander = dare_conf->expander; 
      
     dare->size = dare_conf->size;
-    dare->size_bytes = size_bytes;
 
     void *data_offset = dare + 1;
     memset(data_offset, 0, size_bytes); 
 
     return data_offset;
 }
-
-void *dare_resize(void *arrptr, size_t expander) {
-   assert(arrptr);
-    
-    darray *head = DARE_GET_HEADER(arrptr);
-    head = DARE_REALLOC(head, head->size_bytes * expander);
-    if(head == NULL) {
-        assert(head);
-        return NULL;
-    }
-    
-    return head + 1;
-}
-
-// turn the rest of these into macros
-// make fucking tests before you beat yourself with everything not working
-
-/* removes the data at position copy data to dest if not NULL
- *
- * dare : the array structure to use | pos : the position in the array |
- * dest : the type to contain the data in before it is removed | return : void
- * */
-
-/*
-void dare_merge(darray *src, darray *dst, size_t offset) {
-    dst->f_code = F_NULL;
-
-    offset = WRAP(offset, dst->size);
-    if(src->type_offset != dst->type_offset) {
-        src->f_code = F_TNOMATCH, dst->f_code = F_TNOMATCH; 
-        return;
-    }
-    
-    while(IS_OVERLOADED(dst->load, src->size + offset, dst->size)) {
-       dare_resize(dst, dst->expander);
-       if(dst->f_code == F_NOALLOC) return;
-    }
-
-    dst->data += (offset * dst->type_offset);
-    mempcpy(dst->data, src->data, src->size_bytes);
-}
-*/

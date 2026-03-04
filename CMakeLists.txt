@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 4.2.2)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
+option(${BUILD_TESTS} "Determines if tests should be built" FALSE)
+option(${CMAKE_BUILD_TYPE} "Determines the build type of the project" "Debug")
+
 message(STATUS "CMake Version: ${CMAKE_VERSION}")
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -25,4 +28,9 @@ add_subdirectory(Src)
 
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Deps")
         add_subdirectory(Deps)
+endif()
+
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Tests" AND ${BUILD_TESTS})
+    enable_testing()
+    add_subdirectory(Tests)
 endif()
