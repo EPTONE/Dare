@@ -12,7 +12,7 @@ else(${CMAKE_BUILD_TYPE} STREQUAL "Release")
         set(P_NAME "linux_dare_release")
 endif()
 
-project(${P_NAME} LANGUAGES C VERSION 1.0.0)
+project(${P_NAME} LANGUAGES C VERSION 1.1.0)
 message(STATUS "Project Name: ${PROJECT_NAME}")
 message(STATUS "Project Version: ${PROJECT_VERSION}")
 

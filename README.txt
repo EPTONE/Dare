@@ -1,11 +1,10 @@
 OVERVIEW 
 
-  Dare is a personal project for handling dynamically allocated arrays, it
-is primarily designed around macros and places a header before that data
-in order to keep track of sizes and elements.
+  Dare is a personal project for handling dynamically allocated arrays.
 
-    In other words it still enables the type safety of C without having to
-type cast which was what the original implementation of the library did.
+    Overall it allocates the array in one large chunk but only really returns
+the data this allows for type safety while still being able to access it like
+it's a conventional array albeit at some trade offs.
 
 WHY
 
