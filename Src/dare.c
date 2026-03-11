@@ -76,14 +76,15 @@ void *dare_resize(void *arrptr, size_t sz) {
     size_t old_sz = head->size;
 
     size_t n_sz = sz * head->type_offset;
-    head = DARE_REALLOC(head, sz + sizeof(darray));
+    head = DARE_REALLOC(head, n_sz + sizeof(darray));
     if(head == NULL) assert(head);
     void *n_arrptr = DARE_GET_ARRPTR(head); 
     head->size = sz;
 
     if(old_sz < n_sz) {
         void *point = n_arrptr + (old_sz * head->type_offset);
-        size_t set_len = (n_sz * head->type_offset) - (old_sz * head->type_offset);
+        size_t set_len = n_sz - (old_sz * head->type_offset);
+        VALGRIND_CHECK_MEM_IS_ADDRESSABLE(point, set_len);
         memset(point, 0, set_len);
     }
 
@@ -108,15 +109,15 @@ void dare_merge(void *src, void **vp_dst, size_t offset) {
 
     offset = WRAP(offset, dst_head->size);
     
-    while(src_head->size + offset > dst_head->size) {
-       *vp_dst = dare_expand(dst, dst_head->expander);
+    if(dst_head->size < src_head->size + offset) {
+       *vp_dst = dare_resize(dst, (dst_head->size + src_head->size) * dst_head->expander);
         if(*vp_dst == NULL) return;
         dst = *vp_dst;
         dst_head = DARE_GET_HEADER(dst);
     }
 
     void *point = dst + (offset * dst_head->type_offset);
-    mempcpy(point, src, src_head->size * src_head->type_offset);
+    memcpy(point, src, src_head->size * src_head->type_offset);
 
     dst_head->elements += src_head->elements;
 }
@@ -134,7 +135,7 @@ size_t dare_push(void **vp_arrptr, void *item) {
     void *arrptr = *vp_arrptr;
     darray *head = DARE_GET_HEADER(arrptr);
 
-    while(IS_OVERLOADED(head->load, head->elements, head->size)) {
+    if(IS_OVERLOADED(head->load, head->elements, head->size)) {
         *vp_arrptr = dare_expand(arrptr, head->expander);
         if(*vp_arrptr == NULL) return 0;
         arrptr = *vp_arrptr;
@@ -184,7 +185,7 @@ size_t dare_insert(void **vp_arrptr, void *item, size_t pos) {
     void *arrptr = *vp_arrptr;
     darray *head = DARE_GET_HEADER(arrptr); 
 
-    while(IS_OVERLOADED(head->load, head->elements, head->size)) {
+    if(IS_OVERLOADED(head->load, head->elements, head->size)) {
         *vp_arrptr = dare_expand(arrptr, head->expander);
         if(*vp_arrptr == NULL) return 0;
         arrptr = *vp_arrptr;
@@ -269,15 +270,15 @@ size_t dare_insert_list(void **vp_arrptr, void *list, size_t pos, size_t cp_size
     darray *head = DARE_GET_HEADER(arrptr);
 
     size_t n_pos = WRAP(pos, head->size);
-    if(cp_size + n_pos > head->size) {
+    if(head->size < cp_size + n_pos) {
         *vp_arrptr = dare_resize(arrptr, (cp_size + head->size) * head->expander);
-        if(*vp_arrptr) return 0;
+        if(*vp_arrptr == NULL) return 0;
         arrptr = *vp_arrptr;
         head = DARE_GET_HEADER(arrptr);
     }
-    
+
     void *point = arrptr + (n_pos * head->type_offset);
-    memcpy(point, list, cp_size * head->type_offset);
+    memcpy(point, list, (cp_size * head->type_offset));
 
     head->elements += cp_size;
 

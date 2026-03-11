@@ -81,4 +81,7 @@ void *dare_get(void *arrptr, size_t pos);
 void *dare_pop(void *arrptr);
 void *dare_remove(void *arrptr, size_t pos);
 
+size_t dare_insert_list(void **vp_arrptr, void *list, size_t pos, size_t cp_size);
+void dare_get_list(void *arrptr, void *list, size_t pos, size_t cp_size);
+
 #endif /* DARE_H */
