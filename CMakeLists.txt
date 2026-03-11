@@ -13,7 +13,7 @@ else()
     set(P_NAME "linux_dare_release")
 endif()
 
-project(${P_NAME} LANGUAGES C VERSION 0.2.1)
+project(${P_NAME} LANGUAGES C VERSION 0.2.2)
 message(STATUS "Project Name: ${PROJECT_NAME}")
 message(STATUS "Project Version: ${PROJECT_VERSION}")
 
