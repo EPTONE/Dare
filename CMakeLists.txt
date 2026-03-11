@@ -1,18 +1,19 @@
 cmake_minimum_required(VERSION 4.2.2)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-option(${BUILD_TESTS} "Determines if tests should be built" FALSE)
-option(${CMAKE_BUILD_TYPE} "Determines the build type of the project" "Debug")
+option(BUILD_TESTS "Determines if tests should be built" FALSE)
 
 message(STATUS "CMake Version: ${CMAKE_VERSION}")
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-        set(P_NAME "linux_dare_debug")
-else(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-        set(P_NAME "linux_dare_release")
+    set(P_NAME "linux_dare_debug")
+elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+    set(P_NAME "linux_dare_release")
+else()
+    set(P_NAME "linux_dare_release")
 endif()
 
-project(${P_NAME} LANGUAGES C VERSION 1.1.0)
+project(${P_NAME} LANGUAGES C VERSION 0.2.1)
 message(STATUS "Project Name: ${PROJECT_NAME}")
 message(STATUS "Project Version: ${PROJECT_VERSION}")
 

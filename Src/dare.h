@@ -23,34 +23,34 @@
 #define HCONV(type) *(type *)
 #define PCONV(type)  (type *)
 
-#define DARE_GET_ARRPTR(head) ((head) + 1)
-#define DARE_GET_HEADER(arrptr) ((darray *)(arrptr)) - 1
+#define DARE_GET_ARRPTR(head) (((darray *)(head)) + 1)
+#define DARE_GET_HEADER(arrptr) (((darray *)(arrptr)) - 1)
+
+#define DARE_GET_TYPE_OFFSET(arrptr) DARE_GET_HEADER(arrptr)->type_offset
+
+#define DARE_GET_ELEMENTS(arrptr) DARE_GET_HEADER(arrptr)->elements
+#define DARE_GET_SIZE(arrptr) DARE_GET_HEADER(arrptr)->size
+
+#define DARE_GET_LOAD(arrptr) DARE_GET_HEADER(arrptr)->load
+#define DARE_GET_EXPANDER(arrptr) DARE_GET_HEADER(arrptr)->expander
+
+#define DARE_GET_PUSH(arrptr) DARE_GET_HEADER(arrptr)->push
+#define DARE_GET_PULL(arrptr) DARE_GET_HEADER(arrptr)->pull
 
 // Default darray_config initialization
-#define INIT_DARE_CONF_DEFAULT(type) {sizeof(type), 25, 0.75f, 2.0f}
+#define INIT_DARE_CONF_DEFAULT(type) {sizeof(type), 25, 0.85f, 1.5f}
 
 #define WRAP(pos, size) size ? (pos) % size : 0
 #define IS_OVERLOADED(load, elements, size) load <= (float)elements / (float)size
 
-// we can probably get rid of this and replace it with another library
-typedef enum f_code {
-    
-    F_NULL,
-    F_NOALLOC,
-    F_NOFREE,
-    F_TNOMATCH,
-
-} f_code;
-
 typedef struct darray {
-    int f_code;
-
     size_t type_offset;
 
     size_t elements;
     size_t size;
  
     size_t push, pull;
+    // size_t head, tail;
     // might not be bad to add some queue functionality in here,
     // like a head and tail
 

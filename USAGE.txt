@@ -1,3 +1,27 @@
     INITIALIZATION AND DEINITALIZATION
 
-    
+    To simply init an array all one must do it accept the return from
+    dare_init
+
+    -- main.c --
+
+    #include "dare.h"
+
+    darray_config int_conf = INIT_DARE_CONF_DEFAULT(int); 
+
+    int main(int argv, char **argv) {
+        int *arr_int = dare_init(&int_conf);
+        if(arr_int == NULL) return 1;
+        dare_deinit(arr_int);
+    }
+
+    There is a possibility that the return value will be NULL, as error handling
+    is expected to be handled by the user.
+
+    And to deinit the array just pass it's memory address into dare_deinit.
+
+    USEING THE ARRAY
+
+    The library hosts a multitude of functions for insertion and deletion
+    into the array all of which serve there own purposes for your specified use
+    case.

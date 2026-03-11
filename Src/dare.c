@@ -1,4 +1,5 @@
 #include "dare.h" 
+#include <valgrind/memcheck.h>
 
 /*  initializes array with the provided config
  *  
@@ -46,20 +47,48 @@ void dare_deinit(void *arrptr) {
 void *dare_expand(void *arrptr, double expander) {
     assert(arrptr);
     darray *head = DARE_GET_HEADER(arrptr);
+    size_t old_sz = head->size;
 
-    size_t n_size = head->size * expander;
-    head = DARE_ALLOC(head, (n_size * head->type_offset) + sizeof(darray));
-    if(head == NULL) {
-        assert(head);
-        return NULL;
+    size_t n_sz = head->size * expander;
+    head = DARE_ALLOC(head, (n_sz * head->type_offset) + sizeof(darray));
+    if(head == NULL) assert(head);
+    void *n_arrptr = DARE_GET_ARRPTR(head); 
+    head->size = n_sz;
+
+    if(old_sz < n_sz) {
+        void *point = n_arrptr + (old_sz * head->type_offset);
+        size_t set_len = (n_sz * head->type_offset) - (old_sz * head->type_offset);
+        memset(point, 0, set_len);
     }
-
-    head->size = n_size; 
-   
+  
     return DARE_GET_ARRPTR(head);
 }
 
-// make dare_resize here...
+/*  resizes array to the size of sz
+ *
+ *  arrptr : the array to resize | sz : what size the array should be set to |
+ *  returns : (void *) the memory address to the new array
+ */
+void *dare_resize(void *arrptr, size_t sz) {
+    assert(arrptr);
+
+    darray *head = DARE_GET_HEADER(arrptr);
+    size_t old_sz = head->size;
+
+    size_t n_sz = sz * head->type_offset;
+    head = DARE_REALLOC(head, sz + sizeof(darray));
+    if(head == NULL) assert(head);
+    void *n_arrptr = DARE_GET_ARRPTR(head); 
+    head->size = sz;
+
+    if(old_sz < n_sz) {
+        void *point = n_arrptr + (old_sz * head->type_offset);
+        size_t set_len = (n_sz * head->type_offset) - (old_sz * head->type_offset);
+        memset(point, 0, set_len);
+    }
+
+    return n_arrptr;
+}
 
 /* Merges source array to destination array at offset expanding destination as 
  * needed 
@@ -69,18 +98,17 @@ void *dare_expand(void *arrptr, double expander) {
  * returns : (void) 
  */
 void dare_merge(void *src, void **vp_dst, size_t offset) {
+    assert(src);
+    assert(vp_dst);
+    assert(*vp_dst);
 
     void *dst = *vp_dst;
     darray *src_head = DARE_GET_HEADER(src);
     darray *dst_head = DARE_GET_HEADER(dst);
 
     offset = WRAP(offset, dst_head->size);
-    if(src_head->type_offset != dst_head->type_offset) {
-        src_head->f_code = F_TNOMATCH, dst_head->f_code = F_TNOMATCH; 
-        return;
-    }
     
-    while(IS_OVERLOADED(dst_head->load, src_head->size + offset, dst_head->size)) {
+    while(src_head->size + offset > dst_head->size) {
        *vp_dst = dare_expand(dst, dst_head->expander);
         if(*vp_dst == NULL) return;
         dst = *vp_dst;
@@ -89,6 +117,8 @@ void dare_merge(void *src, void **vp_dst, size_t offset) {
 
     void *point = dst + (offset * dst_head->type_offset);
     mempcpy(point, src, src_head->size * src_head->type_offset);
+
+    dst_head->elements += src_head->elements;
 }
 
 /* Pushes elements into alloc'd memory and increments to next free position,
@@ -222,3 +252,52 @@ void *dare_remove(void *arrptr, size_t pos) {
 
     return point;
 }
+
+/* Takes a pointer to an array and copys the specified array at pos in 
+ * into the vp_arrptr increaseing array size if necessary
+ *
+ * vp_arrptr : pointer to value which hold array address | list : pointer to
+ * array of values | pos : position to insert inside array | cp_size : size to 
+ * copy over form list | returns : (size_t) the position of where items where 
+ * inserted. */
+size_t dare_insert_list(void **vp_arrptr, void *list, size_t pos, size_t cp_size) {
+    assert(vp_arrptr);
+    assert(*vp_arrptr);
+    assert(list);
+
+    void *arrptr = *vp_arrptr;
+    darray *head = DARE_GET_HEADER(arrptr);
+
+    size_t n_pos = WRAP(pos, head->size);
+    if(cp_size + n_pos > head->size) {
+        *vp_arrptr = dare_resize(arrptr, (cp_size + head->size) * head->expander);
+        if(*vp_arrptr) return 0;
+        arrptr = *vp_arrptr;
+        head = DARE_GET_HEADER(arrptr);
+    }
+    
+    void *point = arrptr + (n_pos * head->type_offset);
+    memcpy(point, list, cp_size * head->type_offset);
+
+    head->elements += cp_size;
+
+    return n_pos;
+}
+
+/* Copys data to the given list, pos specifying the position of the data in
+ * arrptr and cp_size specifying length. 
+ *
+ * arrptr : the pointer to the array to copy from | list : the point be copied 
+ * to | pos : where to start the copy | cp_size : length of the copy |
+ * returns : (void). */
+void dare_get_list(void *arrptr, void *list, size_t pos, size_t cp_size) {
+    assert(arrptr);
+    assert(list);
+
+    darray *head = DARE_GET_HEADER(arrptr);
+    
+    size_t n_pos = WRAP(pos, head->size);
+    void *point = arrptr + (n_pos * head->type_offset);
+    memcpy(list, point, cp_size * head->type_offset);
+}
+
