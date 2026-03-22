@@ -15,3 +15,7 @@ programmer.
     This is really just a small piece in a wide array of data structures I
 plan to implement by myself and hopefully extended to the point where someone
 professional might consider the library.
+
+USAGE
+
+    See USAGE.txt for more details on the usage of the array library

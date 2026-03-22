@@ -55,6 +55,7 @@ void *dare_expand(void *arrptr, double expander) {
     void *n_arrptr = DARE_GET_ARRPTR(head); 
     head->size = n_sz;
 
+    // for some people they might not want to memset so lets give them and option not to
     if(old_sz < n_sz) {
         void *point = n_arrptr + (old_sz * head->type_offset);
         size_t set_len = (n_sz * head->type_offset) - (old_sz * head->type_offset);
@@ -302,3 +303,6 @@ void dare_get_list(void *arrptr, void *list, size_t pos, size_t cp_size) {
     memcpy(list, point, cp_size * head->type_offset);
 }
 
+#undef DARE_ALLOC
+#undef DARE_REALLOC
+#undef DARE_FREE

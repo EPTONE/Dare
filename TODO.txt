@@ -1,10 +1,10 @@
 TODO:
 
-    1. Make the test directories that I've been putting off out of laziness &
+    -1-. Make the test directories that I've been putting off out of laziness &
     verify that everything is not going to fucking explode.
 
-        sub.1 finish the rest of the tests and other test functions also add
+        -sub.1- finish the rest of the tests and other test functions also add
         those profile functions so we can actually see whats going on inside
 
-    2. Make documentation both in code and in file, also add some examples
+    -2-. Make documentation both in code and in file, also add some examples
     to display usage.

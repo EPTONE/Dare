@@ -40,8 +40,8 @@
 // Default darray_config initialization
 #define INIT_DARE_CONF_DEFAULT(type) {sizeof(type), 25, 0.85f, 1.5f}
 
-#define WRAP(pos, size) size ? (pos) % size : 0
-#define IS_OVERLOADED(load, elements, size) load <= (float)elements / (float)size
+#define WRAP(pos, size) ((size) ? (pos) % (size) : 0)
+#define IS_OVERLOADED(load, ele, sz) load <= (double)ele / (double)sz
 
 typedef struct darray {
     size_t type_offset;
