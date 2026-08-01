@@ -22,15 +22,15 @@ int main(int argc, char **argv) {
         dare_push(PCONV(void)&arr2, &v_insert2); 
     }
 
-    darray *head2 = DARE_GET_HEADER(arr2);
+    darray *head2 = DARE_GET_HEADER(arr2, darray);
     dare_merge(arr1, PCONV(void)&arr2, head2->push);
 
-    for(size_t i = 0; i < (DARE_GET_HEADER(arr2))->elements; i++) {
+    for(size_t i = 0; i < (DARE_GET_HEADER(arr2, darray))->elements; i++) {
         printf("%d\n", HCONV(uint16_t)dare_get(arr2, i));
     }
 
-    printf("arr1->size: %ld\n", (DARE_GET_HEADER(arr1))->size);
-    printf("arr2->size: %ld\n", (DARE_GET_HEADER(arr2))->size);
+    printf("arr1->size: %ld\n", (DARE_GET_HEADER(arr1, darray))->size);
+    printf("arr2->size: %ld\n", (DARE_GET_HEADER(arr2, darray))->size);
 
     dare_deinit(arr1);
     dare_deinit(arr2);

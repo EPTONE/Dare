@@ -5,15 +5,7 @@ option(BUILD_TESTS "Determines if tests should be built" FALSE)
 
 message(STATUS "CMake Version: ${CMAKE_VERSION}")
 
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(P_NAME "linux_dare_debug")
-elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-    set(P_NAME "linux_dare_release")
-else()
-    set(P_NAME "linux_dare_release")
-endif()
-
-project(${P_NAME} LANGUAGES C VERSION 0.2.2)
+project(dare LANGUAGES C VERSION 0.2.2)
 message(STATUS "Project Name: ${PROJECT_NAME}")
 message(STATUS "Project Version: ${PROJECT_VERSION}")
 

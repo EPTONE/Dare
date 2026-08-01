@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
         dare_push(PCONV(void)&arr, &rand_data);      
     }
 
-    darray *arr_head = DARE_GET_HEADER(arr);
+    darray *arr_head = DARE_GET_HEADER(arr, darray);
 
     for(size_t i = 0; i < arr_head->size; i++) {
         printf("%d\n", HCONV(int)dare_get(arr, i));

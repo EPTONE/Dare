@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
     dare_insert(PCONV(void)&c_arr, &c, 10);
     dare_insert(PCONV(void)&c_arr, &c, 39);
 
-    darray *c_arr_head = DARE_GET_HEADER(c_arr);
+    darray *c_arr_head = DARE_GET_HEADER(c_arr, darray);
     for(size_t i = 0; i < c_arr_head->size; i++) {
         printf("%c", HCONV(char)dare_get(c_arr, i));
     }
