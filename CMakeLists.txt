@@ -1,15 +1,11 @@
 cmake_minimum_required(VERSION 4.2.2)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
+option(BUILD_TESTS "Determines if tests should be built" FALSE)
+
 message(STATUS "CMake Version: ${CMAKE_VERSION}")
 
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-        set(P_NAME "linux_dare_debug")
-else(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-        set(P_NAME "linux_dare_release")
-endif()
-
-project(${P_NAME} LANGUAGES C VERSION 0.0.0)
+project(dare LANGUAGES C VERSION 0.2.2)
 message(STATUS "Project Name: ${PROJECT_NAME}")
 message(STATUS "Project Version: ${PROJECT_VERSION}")
 
@@ -25,4 +21,9 @@ add_subdirectory(Src)
 
 if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Deps")
         add_subdirectory(Deps)
+endif()
+
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/Tests" AND ${BUILD_TESTS})
+    enable_testing()
+    add_subdirectory(Tests)
 endif()

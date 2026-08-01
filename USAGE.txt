@@ -1,0 +1,113 @@
+    INITIALIZATION AND DEINITALIZATION
+
+    To simply init an array all one must do it accept the return from
+    dare_init
+
+    -- main.c --
+
+    #include "dare.h"
+
+    darray_config int_conf = INIT_DARE_CONF_DEFAULT(int); 
+
+    int main(int argv, char **argv) {
+        int *arr_int = dare_init(&int_conf);
+        if(arr_int == NULL) return 1;
+        dare_deinit(arr_int);
+    }
+
+    -- main.c --
+
+    There is a possibility that the return value will be NULL, as error handling
+    is expected to be handled by the user.
+
+    And to deinit the array just pass it's memory address into dare_deinit.
+
+    USEING THE ARRAY
+
+    The library hosts a multitude of functions for insertion and deletion
+    into the array all of which serve there own purposes for your specified use
+    case.
+
+    dare_push pushes items onto the array incrementing forward each time it is
+    called.
+
+    Now not all functions that add items are exactly the same but they share 
+    some similarities so here are a few.
+
+    All insertion functions wrap, this is to protect the array from illegal 
+    values stopping it from crashing and burning your program, and reaching into
+    memory it shouldn't.
+
+    As of right now there is no write protection on items that are inserted, so
+    if you overwrite data you didn't want to overwrite, that's on you, however
+    I'm thinking of implementing some kind of protection system.
+
+    all insertion functions take a void pointer to a pointer, which holds the
+    pointer to your array, this is done to ensure that the array stays up to 
+    date with resizing operations.
+
+    all insertion functions will resize the array when it is overloaded,
+    of course when it is overloaded is decided by you.
+
+    all list insertion functions with resize of the data is larger then there
+    array.
+
+    What all insertion functions do should be pretty self explanatory from here
+    on out, but if your confused there's comments above the functions, and if 
+    that's not good enough you can read the source code, which is pretty simple
+    all things considered.
+
+ERROR HANDLING
+
+    The array library as of right now doesn't have a way as of right now 
+    and probably will never have a way to handle allocation failures,
+    the reason is mostly that different users will have different tolerances for
+    failure.
+
+    So for the most part the user will need to check if the array is valid
+    most functions as of right now cannot properly handle an event when illegal
+    ptr data is passed or a illegal array ptr is passed.
+
+    So if your a user you should be checking every insertion operation for
+    an invalid pointer to ensure safe usage.
+
+GETTING DATA OUT OF THE ARRAY HEADER
+
+    There are probably going to be moments where you want to access an arrays
+    internal data, so marcos are broken out for one to do that.
+
+    -- main.c --
+   
+    darray_config c_conf = INIT_DARE_CONF_DEFAULT(char);
+
+    int main(int argc, char **argv) {
+        char *c = dare_init(c_conf);
+        darray *c_head = DARE_GET_HEADER(c);
+
+        printf("DARE SZ: %ld\n", c_head->size); 
+        printf("DARE_ELE: %ld\n", DARE_GET_ELEMENTS(c));
+
+        dare_deinit(c);
+    }
+
+    All data in the head can be accessed either using the specific macro 
+    grabbers or by just getting the header.
+
+TRADE OFFS & WORK AROUNDS
+
+    As of right now preserving types has one major draw back
+    and that is that you can't tell them apart from just a normal pointer
+    you could give them special names, but at the end of the day that can only
+    do so much in preventing type mix ups
+
+    Right now the only solution would be to use it like this
+
+    -- main.h --
+
+    typedef char_arr char *;
+
+    -- main.h --
+
+    this gives a special name for a type that designates it as an array,
+    whilst it still can be interacted with as a normal pointer it's purposes
+    is made clear.

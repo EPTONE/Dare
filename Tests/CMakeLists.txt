@@ -1,0 +1,6 @@
+add_subdirectory(Capacity_Test)
+add_subdirectory(Merge_Test)
+add_subdirectory(Insert_Test)
+add_subdirectory(List_Test)
+
+add_subdirectory(GeneralStackTest)
