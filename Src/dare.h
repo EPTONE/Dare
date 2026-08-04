@@ -94,6 +94,7 @@ typedef struct d_stack {
     size_t size; // the total size of the array.
 
     size_t head; // the value at the end of the stack.
+    size_t tail;
 
     float load; // the load limit on the stack.
     double expander; // how much the stakc should automatically expand by.
@@ -108,7 +109,7 @@ void *dare_stk_expand(void *stkptr, double expander);
 void *dare_stk_resize(void *stkptr, size_t size);
 
 int dare_stk_push(void **vp_stkptr, void *item);
-void *dare_stk_pull(void *arrptr);
+void *dare_stk_peek(void *arrptr);
 void *dare_stk_pop(void *stkptr);
 
 void dare_stk_reset(void *stkptr);
@@ -127,13 +128,15 @@ typedef struct d_queue {
     double expander;
 } d_queue;
 
-/*
-void *dare_queue_init_conf();
-void *dare_queue_init(size_t size, size_t type_offset, float load, double expander);
 
-signed long int dare_queue_push();
-void *dare_queue_consume();
-*/
+void *dare_queue_init_conf(darray_config *conf);
+void *dare_queue_init(size_t size, size_t type_offset, float load, double expander);
+signed int dare_queue_deinit(void *arrptr);
+
+signed long int dare_queue_push(void **arrptr, void *item);
+void *dare_queue_consume(void *arrptr);
+
+void *dare_queue_get_face(void *arrptr, bool back);
 
 // -------------------------------------------------------------------------- //
 

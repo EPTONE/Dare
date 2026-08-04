@@ -302,27 +302,31 @@ void dare_get_list(void *arrptr, void *list, size_t pos, size_t cp_size) {
     memcpy(list, point, cp_size * head->type_offset);
 }
 
-void *dare_stk_conf_init(darray_config *dare_conf) {
-    assert(dare_conf == NULL);
+// the header always needs to be in front of the array the wrap macro is just
+// there in the event we go out of bound however, we shouldn't really off 
+// of wrap especially when resizing the array, so we need to always be up front
 
+/* START OF STACK */
+
+void *dare_stk_conf_init(darray_config *dare_conf) {
+    if(dare_conf == NULL) return NULL;
     size_t n_sz_bytes = dare_conf->size * dare_conf->type_offset;
+    
     d_stack *stk = DARE_REALLOC(NULL, sizeof(d_stack) + n_sz_bytes);
     if(stk == NULL) return NULL;
 
-    stk->elements = 0;
-    stk->head = 0;
     stk->size = dare_conf->size;
     stk->type_offset = dare_conf->type_offset;
     stk->load = dare_conf->load;
     stk->expander = dare_conf->expander;
 
+    stk->elements = 0;
+    stk->head = 0;
+    stk->tail = 0;
+
     memset(DARE_GET_ARRPTR(stk, d_stack), 0, n_sz_bytes);
     return DARE_GET_ARRPTR(stk, d_stack);
 }
-
-// the header always needs to be in front of the array the wrap macro is just
-// there in the event we go out of bound however, we shouldn't really off 
-// of wrap especially when resizing the array, so we need to always be up front
 
 /* size : the size to set the array to | type_offset : how large each element in
  * the stack is going to be | load : the amount of elements that the stack can
@@ -336,13 +340,14 @@ void *dare_stk_init(size_t size, size_t type_offset, float load, double expander
     d_stack *stk = DARE_REALLOC(NULL, sizeof(d_stack) + n_sz_bytes);
     if(stk == NULL) return NULL;
 
-    stk->elements = 0;
-    stk->head = 0;
-
     stk->size = size;
     stk->type_offset = type_offset;
     stk->load = load;
     stk->expander = expander;
+
+    stk->elements = 0;
+    stk->head = 0;
+    stk->tail = 0;
 
     memset(DARE_GET_ARRPTR(stk, d_stack), 0, n_sz_bytes);
     return DARE_GET_ARRPTR(stk, d_stack);
@@ -394,22 +399,23 @@ int dare_stk_push(void **arrptr, void *item) {
     d_stack *stk_headptr = DARE_GET_HEADER(stk_arrptr, d_stack);
     
     if(IS_OVERLOADED(stk_headptr->load, stk_headptr->elements, stk_headptr->size) 
-       && stk_headptr->expander >= 1.0) {
+       && stk_headptr->expander > 1.0) {
         *arrptr = dare_stk_expand(stk_arrptr, stk_headptr->expander); 
         if(*arrptr == NULL) return -1;
 
         stk_arrptr = *arrptr;
         stk_headptr = DARE_GET_HEADER(stk_arrptr, d_stack);
-    }
+    } 
 
-    size_t new_pos = WRAP(stk_headptr->head, stk_headptr->size); // ensure that where always in the array via wrapping.
+    if(stk_headptr->tail == stk_headptr->head && stk_headptr->elements != 0) {
+        stk_headptr->head++;
+    } else stk_headptr->elements++; 
+
+    size_t new_pos = WRAP(stk_headptr->tail, stk_headptr->size); // ensure that where always in the array via wrapping.
     void *point = stk_arrptr + (new_pos * stk_headptr->type_offset); // move to point.
     memcpy(point, item, stk_headptr->type_offset); // copy data into array.
 
-    if(stk_headptr->expander >= 1.0) return new_pos;
-    stk_headptr->head = new_pos + 1; // move to the next index.
-                                                                               
-    stk_headptr->elements++; 
+    stk_headptr->tail = new_pos + 1; // move to the next index.                                                                           
     return new_pos;
 }
 
@@ -417,7 +423,7 @@ int dare_stk_push(void **arrptr, void *item) {
  * of head.
  *
  * Description: returns the top of the stack as a memory address. */
-void *dare_stk_pull(void *arrptr) {
+void *dare_stk_peek(void *arrptr) {
     d_stack *stk_headptr = DARE_GET_HEADER(arrptr, d_stack);
 
     size_t new_pos = WRAP(stk_headptr->head, stk_headptr->size);
@@ -427,36 +433,151 @@ void *dare_stk_pull(void *arrptr) {
 }
 
 /* arrptr : the pointer to the array of the stack | returns : the memory address
- * of head 
+ * of head or NULL on failure.
  *
  * Description: returns the memory address of head and moves it back by one*/
 void *dare_stk_pop(void *arrptr) {     
+    if(arrptr == NULL) return NULL; 
     d_stack *stk_headptr = DARE_GET_HEADER(arrptr, d_stack);
 
     size_t new_pos = WRAP(stk_headptr->head, stk_headptr->size);
     void *point = arrptr + (new_pos * stk_headptr->type_offset);
   
-    if(new_pos == 0) stk_headptr->head = 0;
-    else stk_headptr->head = new_pos - 1;
+    if(stk_headptr->head != stk_headptr->tail) {
+        stk_headptr->tail = new_pos - 1;
+        stk_headptr->elements--;
+    }
 
-    stk_headptr->elements--;
     return point;
 }
 
-void *dare_queue_init_conf() {
-    return NULL;
+/* START OF QUEUE */
+
+void *dare_queue_init_conf(darray_config *conf) {
+    if(conf == NULL) return NULL; 
+    size_t size_bytes = conf->size * conf->type_offset;
+
+    d_queue *queue = DARE_ALLOC(NULL, sizeof(d_queue) + size_bytes);
+    if(queue == NULL) return NULL;
+   
+    queue->size = conf->size;
+    queue->type_offset = conf->type_offset;
+    queue->load = conf->load;
+    queue->expander = conf->expander;
+
+    queue->elements = 0;
+    queue->head = 0;
+    queue->tail = 0;
+
+    return DARE_GET_ARRPTR(queue, d_queue);
 }
 
 void *dare_queue_init(size_t size, size_t type_offset, float load, double expander) {
+    size_t size_bytes = size * type_offset;
+
+    d_queue *queue = DARE_ALLOC(NULL, sizeof(d_queue) + size_bytes);
+    if(queue == NULL) return NULL;
+   
+    queue->size = size;
+    queue->type_offset = type_offset;
+    queue->load = load;
+    queue->expander = expander;
+
+    queue->elements = 0;
+    queue->head = 0;
+    queue->tail = 0;
+
+    return DARE_GET_ARRPTR(queue, d_queue);
+}
+
+signed int dare_queue_deinit(void *queue_arrptr) {
+    if(queue_arrptr == NULL) return -1;
+    free(DARE_GET_HEADER(queue_arrptr, d_queue));
+    return 0;
+}
+
+void *dare_queue_expand(void *arrptr, size_t expander) {
+    d_queue *queue_headptr = DARE_GET_HEADER(arrptr, d_queue);
+    size_t old_sz = queue_headptr->size; 
+    size_t new_sz = queue_headptr->size * expander;
+   
+    queue_headptr = DARE_ALLOC(queue_headptr, (new_sz * queue_headptr->type_offset) + sizeof(d_queue));
+    if(queue_headptr == NULL) return NULL;
+
+    queue_headptr->size = new_sz; 
+    return DARE_GET_ARRPTR(queue_headptr, d_queue);
+}
+
+void *dare_queue_resize() {
     return NULL;
 }
 
-signed long int dare_queue_push() {
-    return -1;
+/* arrptr : the pointer to the variable that holds the address to the queue's array |
+ * item : the data to be copied into the queue | returns : where the item was index or
+ * -1 on failure. */
+signed long int dare_queue_push(void **arrptr, void *item) {
+    if(arrptr == NULL) return -1; 
+    void *queue_arrptr = *arrptr;
+    if(queue_arrptr == NULL) return -1;
+    d_queue *queue_headptr = DARE_GET_HEADER(queue_arrptr, d_queue);
+    if(queue_headptr == NULL) return -1;
+
+    if(IS_OVERLOADED(queue_headptr->load, queue_headptr->elements, queue_headptr->size) && queue_headptr->expander > 1.0) {
+        *arrptr = dare_queue_expand(queue_arrptr, queue_headptr->expander);
+        if(*arrptr == NULL) return -1;
+
+        queue_arrptr = *arrptr;
+        queue_headptr = DARE_GET_HEADER(queue_arrptr, d_queue);
+    }
+
+    if(queue_headptr->tail == queue_headptr->head && queue_headptr->elements != 0) {
+        queue_headptr->head++;
+    } else queue_headptr->elements++;
+    
+    size_t new_pos = WRAP(queue_headptr->tail, queue_headptr->size);
+    void *point = queue_arrptr + new_pos * queue_headptr->type_offset;
+    memcpy(point, item, queue_headptr->type_offset);
+    
+    queue_headptr->tail = new_pos + 1;
+    return new_pos;
 }
 
-void *dare_queue_consume() {
-    return NULL;
+/* arrptr : The pointer to the array of the queue | back : what face of the queue
+ * to return front or back | returns : The front or the back of pointer of the queue. 
+ *
+ * Description: Returns the memory address of the front or back of the queue 
+ * based on what true/false value back is provided. */
+void *dare_queue_get_face(void *arrptr, bool back) {
+    if(arrptr == NULL) return NULL;
+    d_queue *queue_headptr = DARE_GET_HEADER(arrptr, d_queue);
+
+    size_t new_pos;
+    if(back == false) new_pos = WRAP(queue_headptr->head, queue_headptr->size);
+    else new_pos = WRAP(queue_headptr->tail, queue_headptr->size);
+    
+    void *point = arrptr + new_pos * queue_headptr->type_offset; 
+    return point;
+}
+
+/* arrptr : The pointer to the array of the queue | returns : the pointer to the
+ * front of the queue or NULL on failure
+ *
+ * Description: Returns the address that head points to and increments by one 
+ * returning NULL in the event that arrptr or queue_headptr is NULL. */
+void *dare_queue_consume(void *arrptr) {
+    if(arrptr == NULL) return NULL;
+    d_queue *queue_headptr = DARE_GET_HEADER(arrptr, d_queue);
+    if(queue_headptr == NULL) return NULL;
+
+    size_t new_pos = WRAP(queue_headptr->head, queue_headptr->size);
+    void *point = arrptr + new_pos * queue_headptr->type_offset;
+
+    if(queue_headptr->head != queue_headptr->tail) {
+        queue_headptr->head = new_pos + 1;
+        queue_headptr->elements--; 
+    }
+
+    return point;
 }
 
 #undef DARE_ALLOC

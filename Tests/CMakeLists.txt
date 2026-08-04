@@ -4,3 +4,4 @@ add_subdirectory(Insert_Test)
 add_subdirectory(List_Test)
 
 add_subdirectory(GeneralStackTest)
+add_subdirectory(GeneralQueueTest)

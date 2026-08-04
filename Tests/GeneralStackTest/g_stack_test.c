@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
         dare_stk_push(PCONV(void)&id_stk, &id);
     }
    
-   char c = HCONV(char)dare_stk_pull(id_stk);
+   char c = HCONV(char)dare_stk_peek(id_stk);
 
    for(int i = 0; i < 1000; i++) {
         char c = HCONV(char)dare_stk_pop(id_stk);
